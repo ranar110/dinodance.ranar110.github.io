@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chaotic Dino Quiz</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="game.js" defer></script>
+</head>
+
+<body>
+    <div id="burst-layer" aria-hidden="true"></div>
+
+    <main class="quiz-shell">
+        <section id="question-screen" class="screen active" aria-live="polite">
+            <p class="progress" id="progress-text"></p>
+            <div class="progress-wrap" aria-hidden="true">
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
+            <div class="question-box">
+                <h2 id="question-text"></h2>
+            </div>
+            <p id="reaction-text" class="reaction" aria-live="polite"></p>
+            <div id="answers" class="answer-grid"></div>
+            <div class="meter-box">
+                <p class="meter-title">Dino Energy Meter</p>
+                <div class="meter-row" data-row="trex">
+                    <div class="meter-label">T-Rex</div>
+                    <div class="meter-bar">
+                        <div id="meter-trex" class="meter-fill" data-dino="trex"></div>
+                    </div>
+                </div>
+                <div class="meter-row" data-row="triceratops">
+                    <div class="meter-label">Triceratops</div>
+                    <div class="meter-bar">
+                        <div id="meter-triceratops" class="meter-fill" data-dino="triceratops"></div>
+                    </div>
+                </div>
+                <div class="meter-row" data-row="raptor">
+                    <div class="meter-label">Raptor</div>
+                    <div class="meter-bar">
+                        <div id="meter-raptor" class="meter-fill" data-dino="raptor"></div>
+                    </div>
+                </div>
+                <div class="meter-row" data-row="stegosaurus">
+                    <div class="meter-label">Stegosaurus</div>
+                    <div class="meter-bar">
+                        <div id="meter-stegosaurus" class="meter-fill" data-dino="stegosaurus"></div>
+                    </div>
+                </div>
+            </div>
+            <p class="kbd-hint">Keyboard chaos enabled: press <strong>1</strong>, <strong>2</strong>, or
+                <strong>3</strong> to answer fast.</p>
+        </section>
+
+        <section id="note-screen" class="screen" aria-live="polite">
+            <h2>Bonus Chaos Note (Optional)</h2>
+            <p class="subtitle">
+                Drop a personal note so our AI-ish fossil oracle can overanalyze your vibe.
+            </p>
+            <textarea id="user-note"
+                placeholder="Example: I study code at parties while pretending to chill."></textarea>
+            <p id="note-live" class="note-live">Live vibe scan: Mystery meat-eater!</p>
+            <div class="actions">
+                <button id="show-result-btn" class="btn-orange" type="button">Reveal My Dino Destiny</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const questionText = document.getElementById("question-text");
+            const answersEl = document.getElementById("answers");
+            const progressText = document.getElementById("progress-text");
+            const progressFill = document.getElementById("progress-fill");
+            const reactionText = document.getElementById("reaction-text");
+            const noteInput = document.getElementById("user-note");
+            const noteLive = document.getElementById("note-live");
+            const noteScreen = document.getElementById("note-screen");
+            const questionScreen = document.getElementById("question-screen");
+
+            const meterRows = {
+                trex: document.querySelector('.meter-row[data-row="trex"]'),
+                triceratops: document.querySelector('.meter-row[data-row="triceratops"]'),
+                raptor: document.querySelector('.meter-row[data-row="raptor"]'),
+                stegosaurus: document.querySelector('.meter-row[data-row="stegosaurus"]')
+            };
+
+            const meterFills = {
+                trex: document.getElementById("meter-trex"),
+                triceratops: document.getElementById("meter-triceratops"),
+                raptor: document.getElementById("meter-raptor"),
+                stegosaurus: document.getElementById("meter-stegosaurus")
+            };
+
+            let currentQuestion = 0;
+            let scores = { trex: 0, triceratops: 0, raptor: 0, stegosaurus: 0 };
+            let questionLocked = false;
+
+            function updateProgress() {
+                progressText.textContent = `Question ${currentQuestion + 1} of ${questions.length}`;
+                progressFill.style.width = `${((currentQuestion + 1) / questions.length) * 100}%`;
+            }
+
+            function updateMeters() {
+                const maxScore = Math.max(...Object.values(scores), 1);
+                const leader = Object.entries(scores).sort((a, b) => b[1] - a[1])[0][0];
+
+                dinoOrder.forEach((key) => {
+                    const raw = (scores[key] / maxScore) * 100;
+                    const width = scores[key] === 0 ? 0 : Math.max(8, raw);
+                    meterFills[key].style.width = `${width}%`;
+                    meterRows[key].classList.toggle("leading", scores[leader] > 0 && key === leader);
+                });
+            }
+
+            function setReaction(message) {
+                reactionText.textContent = message;
+                reactionText.classList.remove("pop");
+                void reactionText.offsetWidth;
+                reactionText.classList.add("pop");
+            }
+
+            function addScore(scoreObj) {
+                Object.keys(scoreObj).forEach((key) => {
+                    scores[key] += scoreObj[key];
+                });
+            }
+
+            function renderQuestion() {
+                const q = questions[currentQuestion];
+                updateProgress();
+                questionText.textContent = q.text;
+                answersEl.innerHTML = "";
+
+                q.answers.forEach((answer) => {
+                    const btn = document.createElement("button");
+                    btn.type = "button";
+                    btn.className = "btn-orange";
+                    btn.textContent = answer.label;
+                    btn.addEventListener("click", () => {
+                        if (questionLocked) return;
+                        questionLocked = true;
+                        setReaction(`Crowd reaction: ${answer.reaction}`);
+                        addScore(answer.score);
+                        updateMeters();
+                        questionScreen.classList.add("changing");
+
+                        setTimeout(() => {
+                            currentQuestion += 1;
+                            if (currentQuestion < questions.length) {
+                                renderQuestion();
+                            } else {
+                                questionScreen.classList.remove("active");
+                                noteScreen.classList.add("active");
+                            }
+                            questionScreen.classList.remove("changing");
+                            questionLocked = false;
+                        }, 360);
+                    });
+                    answersEl.appendChild(btn);
+                });
+            }
+
+            function analyzeNote(note) {
+                const lowered = note.toLowerCase();
+                if (/(code|study)/.test(lowered)) return "Nerdy raptor hacking ferns!";
+                if (/(party|fun)/.test(lowered)) return "Party dino inventing disco!";
+                if (/(chill|relax)/.test(lowered)) return "Chillaxasaurus napping!";
+                return "Mystery meat-eater!";
+            }
+
+            function updateLiveNote() {
+                const note = noteInput.value.trim();
+                noteLive.textContent = `Live vibe scan: ${note ? analyzeNote(note) : "Mystery meat-eater!"}`;
+            }
+
+            function pickWinner() {
+                const ordered = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+                return ordered[0][0];
+            }
+
+            document.getElementById("show-result-btn").addEventListener("click", () => {
+                const winner = pickWinner();
+                const note = noteInput.value.trim();
+                // Serialize scores to pass to result page
+                const scoresStr = encodeURIComponent(JSON.stringify(scores));
+                const noteStr = encodeURIComponent(note);
+                window.location.href = `result.html?winner=${winner}&note=${noteStr}&scores=${scoresStr}`;
+            });
+
+            noteInput.addEventListener("input", updateLiveNote);
+
+            document.addEventListener("keydown", (event) => {
+                if (!questionScreen.classList.contains("active") || questionLocked) return;
+                const answerIndex = Number(event.key) - 1;
+                if (Number.isNaN(answerIndex) || answerIndex < 0 || answerIndex > 2) return;
+                const answerButtons = answersEl.querySelectorAll("button");
+                if (!answerButtons[answerIndex]) return;
+                answerButtons[answerIndex].click();
+            });
+
+            // Initial Render
+            renderQuestion();
+            updateMeters();
+        });
+    </script>
+</body>
+
+</html>

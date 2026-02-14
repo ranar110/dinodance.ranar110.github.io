@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dino Info Vault</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Specific styles for info page overrides or additions */
+    .info-shell {
+      width: min(980px, 100%);
+      margin: 0 auto;
+    }
+
+    .panel {
+      background: var(--card);
+      border-radius: 22px;
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.2);
+      padding: 22px;
+      margin-bottom: 16px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .dino-card {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
+      padding: 14px;
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    /* Highlight class for the selected dino */
+    .dino-card.highlight {
+      border-color: var(--orange);
+      transform: scale(1.03);
+      box-shadow: 0 0 20px rgba(255, 152, 0, 0.6);
+      background: #fffbf0;
+    }
+
+    .dino-card img {
+      width: 300px;
+      height: 200px;
+      max-width: 100%;
+      object-fit: cover;
+      border-radius: 14px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.22);
+    }
+
+    .dino-card p {
+      margin: 8px 0;
+    }
+
+    .site-info {
+      line-height: 1.45;
+    }
+
+    .site-info p {
+      margin: 8px 0;
+    }
+
+    #fact-box {
+      margin-top: 12px;
+      background: #fff6df;
+      border: 2px dashed #ffb74d;
+      border-radius: 14px;
+      padding: 10px 12px;
+      text-align: center;
+      font-weight: bold;
+      min-height: 52px;
+      display: grid;
+      place-items: center;
+    }
+
+    @media (max-width: 760px) {
+      .cards {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .panel {
+        padding: 16px;
+      }
+    }
+  </style>
+  <script src="game.js" defer></script>
+</head>
+
+<body>
+  <main class="info-shell">
+    <section class="panel">
+      <h1>Dino Info Vault 🦕</h1>
+      <p class="subtitle">Extra info for this site, your quiz results, and your inner prehistoric chaos.</p>
+      <div class="actions">
+        <a class="btn-orange link-btn" href="index.html">Back to Start</a>
+        <button id="fact-btn" class="btn-orange" type="button">Drop Random Dino Fact</button>
+      </div>
+      <div id="fact-box">Tap the random fact button to summon paleo nonsense.</div>
+    </section>
+
+    <section class="panel">
+      <h2>The 4 Quiz Dinosaurs</h2>
+      <div class="cards">
+        <article class="dino-card" id="card-trex">
+          <h2>T-Rex (Bossy)</h2>
+          <img data-dino="trex" src="https://via.placeholder.com/300x200/ff7f50/ffffff?text=T-Rex+Boss"
+            alt="T-Rex placeholder image" />
+          <p><strong>Quiz vibe:</strong> Tiny arms, huge attitude.</p>
+          <p><strong>Extra:</strong> Walks into meetings with no slides and still wins.</p>
+        </article>
+
+        <article class="dino-card" id="card-triceratops">
+          <h2>Triceratops (Loyal)</h2>
+          <img data-dino="triceratops" src="https://via.placeholder.com/300x200/20b2aa/ffffff?text=Triceratops+Loyal"
+            alt="Triceratops placeholder image" />
+          <p><strong>Quiz vibe:</strong> Herd heart, horn-first problem solving.</p>
+          <p><strong>Extra:</strong> Group chat admin and bodyguard at the same time.</p>
+        </article>
+
+        <article class="dino-card" id="card-raptor">
+          <h2>Velociraptor (Sneaky)</h2>
+          <img data-dino="raptor" src="https://via.placeholder.com/300x200/40e0d0/003344?text=Velociraptor+Sneaky"
+            alt="Velociraptor placeholder image" />
+          <p><strong>Quiz vibe:</strong> Turkey-sized mastermind with suspicious confidence.</p>
+          <p><strong>Extra:</strong> Definitely knows your Wi-Fi password already.</p>
+        </article>
+
+        <article class="dino-card" id="card-stegosaurus">
+          <h2>Stegosaurus (Chill)</h2>
+          <img data-dino="stegosaurus" src="https://via.placeholder.com/300x200/ffd54f/5a3c00?text=Stegosaurus+Chill"
+            alt="Stegosaurus placeholder image" />
+          <p><strong>Quiz vibe:</strong> Walnut brain, golden soul, top-tier nap energy.</p>
+          <p><strong>Extra:</strong> Brings snacks and emotional stability to every party.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel site-info">
+      <h2>About This Site</h2>
+      <p>This quiz is pure HTML/CSS/JS, works offline, and keeps everything self-contained.</p>
+      <p>Interactive extras now include keyboard answers, live dino score meter, reaction text, and result burst
+        effects.</p>
+      <p>Share your result and blame science if anyone disagrees.</p>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const factBox = document.getElementById("fact-box");
+      const factBtn = document.getElementById("fact-btn");
+
+      const randomFacts = [
+        "If T-Rex had a podcast, every episode would be titled 'I Was Right.'",
+        "Triceratops invented conflict resolution by charging at it first.",
+        "Velociraptor writes bug-free code, then leaves one bug for suspense.",
+        "Stegosaurus believes every problem can be solved with a snack and a nap.",
+        "Jurassic dance floors were measured in tail-swing radius.",
+        "Every dino in this quiz has a 100% confidence score and 0% chill about being judged."
+      ];
+
+      function showRandomFact() {
+        const fact = randomFacts[Math.floor(Math.random() * randomFacts.length)];
+        factBox.textContent = fact;
+      }
+
+      factBtn.addEventListener("click", showRandomFact);
+
+      document.querySelectorAll("img[data-dino]").forEach((img) => {
+        img.addEventListener("error", () => {
+          const key = img.dataset.dino;
+          if (typeof imageFallbackForDino === 'function') {
+            img.src = imageFallbackForDino(key);
+          }
+        });
+        // Try fallback immediately if src is placeholder (optional, keeps consistency)
+        // actually, let's just let the error handler catch it if the placeholder fails or just rely on game.js
+      });
+
+      showRandomFact();
+
+      // Check for URL param to highlight dino
+      const urlParams = new URLSearchParams(window.location.search);
+      const dinoKey = urlParams.get("dino");
+      if (dinoKey) {
+        const card = document.getElementById(`card-${dinoKey}`);
+        if (card) {
+          card.classList.add("highlight");
+          setTimeout(() => {
+            card.scrollIntoView({ behavior: "smooth", block: "center" });
+          }, 100);
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>

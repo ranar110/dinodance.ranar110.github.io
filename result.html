@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Your Dino Destiny</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="game.js" defer></script>
+</head>
+
+<body>
+    <div id="burst-layer" aria-hidden="true"></div>
+
+    <main class="quiz-shell">
+        <section id="result-screen" class="screen active" aria-live="polite">
+            <div class="result-card">
+                <div id="roar-text" class="roar" aria-hidden="true">🦖 ROAR! 🦕</div>
+                <h2 id="result-title"></h2>
+                <img id="result-image" class="result-image" alt="Dinosaur result image" />
+                <p id="result-description" class="result-description"></p>
+                <div id="score-breakdown" class="score-breakdown"></div>
+                <div id="note-analysis" class="note-analysis"></div>
+                <div class="actions">
+                    <button id="copy-btn" class="btn-orange" type="button">Copy Result</button>
+                    <a class="btn-orange link-btn" href="index.html">Play Again</a>
+                    <a id="info-btn" class="btn-orange link-btn" href="dino-info.html">Go to Dino Info Page</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const winnerKey = urlParams.get("winner") || "trex";
+            const userNote = urlParams.get("note") || "";
+            const scoresStr = urlParams.get("scores");
+            const scores = scoresStr ? JSON.parse(decodeURIComponent(scoresStr)) : {};
+
+            const resultTitle = document.getElementById("result-title");
+            const resultImage = document.getElementById("result-image");
+            const resultDescription = document.getElementById("result-description");
+            const scoreBreakdown = document.getElementById("score-breakdown");
+            const noteAnalysisEl = document.getElementById("note-analysis");
+            const roarText = document.getElementById("roar-text");
+            const burstLayer = document.getElementById("burst-layer");
+            const infoBtn = document.getElementById("info-btn");
+
+            // Update Info Button Link
+            infoBtn.href = `dino-info.html?dino=${winnerKey}`;
+
+            const dino = dinoData[winnerKey];
+
+            function analyzeNote(note) {
+                const lowered = note.toLowerCase();
+                if (/(code|study)/.test(lowered)) return "Nerdy raptor hacking ferns!";
+                if (/(party|fun)/.test(lowered)) return "Party dino inventing disco!";
+                if (/(chill|relax)/.test(lowered)) return "Chillaxasaurus napping!";
+                return "Mystery meat-eater!";
+            }
+
+            const noteMessage = analyzeNote(userNote);
+
+            resultTitle.textContent = `You are: ${dino.name}`;
+            resultDescription.textContent = dino.description;
+            noteAnalysisEl.textContent = `Personal note analysis: ${noteMessage}`;
+
+            // Render Breakdown if scores exist
+            if (Object.keys(scores).length > 0) {
+                scoreBreakdown.innerHTML = dinoOrder.map((key) => {
+                    const label = dinoData[key].name.replace(/\s*\(.+\)$/, "");
+                    return `<div>${label}: ${scores[key] || 0} dino points</div>`;
+                }).join("");
+            }
+
+            resultImage.src = dino.image;
+            resultImage.alt = `${dino.name} placeholder image`;
+            resultImage.onerror = function onErrorFallback() {
+                this.onerror = null;
+                this.src = imageFallbackForDino(winnerKey);
+            };
+
+            // Roar Animation
+            roarText.classList.remove("roar");
+            void roarText.offsetWidth;
+            roarText.classList.add("roar");
+
+            // Burst Effect
+            function burstRoar() {
+                burstLayer.innerHTML = "";
+                const emojis = ["🦖", "🦕", "🌋", "💥", "⭐", "🍕", "🦴"];
+                for (let i = 0; i < 22; i += 1) {
+                    const piece = document.createElement("span");
+                    piece.className = "burst-emoji";
+                    piece.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                    piece.style.left = `${Math.random() * 100}%`;
+                    piece.style.fontSize = `${20 + Math.floor(Math.random() * 24)}px`;
+                    piece.style.animationDuration = `${1 + Math.random() * 0.7}s`;
+                    piece.style.animationDelay = `${Math.random() * 0.12}s`;
+                    piece.style.setProperty("--drift", `${Math.floor(Math.random() * 220) - 110}px`);
+                    burstLayer.appendChild(piece);
+                    setTimeout(() => piece.remove(), 2200);
+                }
+            }
+            burstRoar();
+
+            // Copy Functionality
+            function buildShareText() {
+                return `I took the Chaotic Dino Quiz and got ${dino.name}! ${dino.description} Bonus vibe: ${noteMessage}`;
+            }
+
+            document.getElementById("copy-btn").addEventListener("click", async () => {
+                const text = buildShareText();
+                try {
+                    await navigator.clipboard.writeText(text);
+                    alert("Copied! Paste it and flex your dino energy.");
+                } catch (err) {
+                    alert(`Copy failed, but here's your share text:\n\n${text}`);
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
