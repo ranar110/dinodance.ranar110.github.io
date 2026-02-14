@@ -271,6 +271,7 @@
             }
           });
 
+          localStorage.setItem('dinoUserTags', JSON.stringify(newTags));
           setLocation(`/result?winner=${bestDino.id}`);
         }
       };
@@ -337,6 +338,30 @@
       const winnerKey = params.get('winner') || 'trex';
       const dino = dinoData.find(d => d.id === winnerKey) || dinoData[0];
 
+      const [analysis, setAnalysis] = useState('');
+      const [loading, setLoading] = useState(false);
+
+      const generateAnalysis = async () => {
+        setLoading(true);
+        try {
+          const tags = JSON.parse(localStorage.getItem('dinoUserTags') || '{}');
+          const res = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ dinoId: dino.id, tags })
+          });
+          const data = await res.json();
+          if (data.analysis) {
+            setAnalysis(data.analysis);
+          } else {
+            setAnalysis("AI is currently sleeping (Missing API Key on Vercel). But trust me, you're awesome.");
+          }
+        } catch (e) {
+          setAnalysis("Could not reach the dino brain. Try again later.");
+        }
+        setLoading(false);
+      };
+
       return (
         <div className="result-hero">
           <div className="match-score">98% Match</div>
@@ -352,7 +377,17 @@
             </div>
           </Link>
 
+          {analysis && (
+            <div style={{ background: '#222', padding: '20px', borderRadius: '8px', maxWidth: '600px', margin: '20px auto', border: '1px solid #444' }}>
+              <h3 style={{ color: '#e50914', marginTop: 0 }}>AI Personality Roast</h3>
+              <p style={{ fontSize: '1.1rem', lineHeight: '1.5' }}>{analysis}</p>
+            </div>
+          )}
+
           <div className="btn-group">
+            <button className="btn btn-play" onClick={generateAnalysis} disabled={loading}>
+              {loading ? 'Thinking...' : '✨ AI Analyze Me'}
+            </button>
             <Link href="/">
               <a className="btn btn-info">⌂ Home</a>
             </Link>
